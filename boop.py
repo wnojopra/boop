@@ -1,13 +1,6 @@
 from absl import app
-from typing import Dict, Sequence
-
-
-WIDTH = 6
-HEIGHT = 6
-VALID_PIECES = ["O", "B"]
-
-Coord = tuple[int, int]
-Board = Dict[Coord, str]
+from typing import Sequence
+from boop_util import WIDTH, HEIGHT, VALID_KITTENS, VALID_CATS, Coord, Board, GameState
 
 
 def init_gameboard() -> Board:
@@ -16,6 +9,10 @@ def init_gameboard() -> Board:
     for y in range(HEIGHT):
       board[(x, y)] = "_"
   return board
+
+
+def init_gamestate() -> GameState:
+  return GameState(init_gameboard())
 
 
 def print_gameboard(board: Board) -> None:
@@ -64,25 +61,53 @@ def check_winner(board: Board) -> str:
   # Check rows
   for y in range(HEIGHT):
     for x in range(WIDTH - 2):
-      if board.get((x, y)) == board.get((x + 1, y)) == board.get((x + 2, y)) and board.get((x, y)) in VALID_PIECES:
+      if board.get((x, y)) == board.get((x + 1, y)) == board.get((x + 2, y)) and board.get((x, y)) in VALID_CATS:
         return board.get((x, y))
   
   # Check columns
   for x in range(WIDTH):
     for y in range(HEIGHT - 2):
-      if board.get((x, y)) == board.get((x, y + 1)) == board.get((x, y + 2)) and board.get((x, y)) in VALID_PIECES:
+      if board.get((x, y)) == board.get((x, y + 1)) == board.get((x, y + 2)) and board.get((x, y)) in VALID_CATS:
         return board.get((x, y))
   
   # Check diagonals
   for y in range(HEIGHT - 2):
     for x in range(WIDTH - 2):
-      if board.get((x, y)) == board.get((x + 1, y + 1)) == board.get((x + 2, y + 2)) and board.get((x, y)) in VALID_PIECES:
+      if board.get((x, y)) == board.get((x + 1, y + 1)) == board.get((x + 2, y + 2)) and board.get((x, y)) in VALID_CATS:
         return board.get((x, y))
       
-      if board.get((x + 2, y)) == board.get((x + 1, y + 1)) == board.get((x, y + 2)) and board.get((x + 2, y)) in VALID_PIECES:
+      if board.get((x + 2, y)) == board.get((x + 1, y + 1)) == board.get((x, y + 2)) and board.get((x + 2, y)) in VALID_CATS:
         return board.get((x + 2, y))
   
   return None  # No winner found
+
+
+def check_triple_kitty(state: GameState, player: str) -> None:
+  board = state.board
+  # Check rows
+  for y in range(HEIGHT):
+    for x in range(WIDTH - 2):
+      if board.get((x, y)) == board.get((x + 1, y)) == board.get((x + 2, y)) and board.get((x, y)) in VALID_KITTENS:
+        board[(x, y)] = board[(x + 1, y)] = board[(x + 2, y)] = "_"
+        state.cats[player] += 3
+  
+  # Check columns
+  for x in range(WIDTH):
+    for y in range(HEIGHT - 2):
+      if board.get((x, y)) == board.get((x, y + 1)) == board.get((x, y + 2)) and board.get((x, y)) in VALID_KITTENS:
+        board[(x, y)] = board[(x, y + 1)] = board[(x, y + 2)] = "_"
+        state.cats[player] += 3
+  
+  # Check diagonals
+  for y in range(HEIGHT - 2):
+    for x in range(WIDTH - 2):
+      if board.get((x, y)) == board.get((x + 1, y + 1)) == board.get((x + 2, y + 2)) and board.get((x, y)) in VALID_KITTENS:
+        board[(x, y)] = board[(x + 1, y + 1)] = board[(x + 2, y + 2)] = "_"
+        state.cats[player] += 3
+      
+      if board.get((x + 2, y)) == board.get((x + 1, y + 1)) == board.get((x, y + 2)) and board.get((x + 2, y)) in VALID_KITTENS:
+        board[(x + 2, y)] = board[(x + 1, y + 1)] = board[(x, y + 2)] = "_"
+        state.cats[player] += 3
 
 
 def boop(board: Board, coordinate: Coord) -> None:
@@ -93,6 +118,9 @@ def boop(board: Board, coordinate: Coord) -> None:
         continue
       nx = x + dx
       ny = y + dy
+      if board[(x, y)] in VALID_KITTENS and board[(nx, ny)] in VALID_CATS:
+        # Cats can't be booped by kitties
+        continue
       if 0 <= nx < WIDTH and 0 <= ny < HEIGHT:
         # Check behind the neighbor
         bx = nx + dx
@@ -109,26 +137,38 @@ def boop(board: Board, coordinate: Coord) -> None:
           pass
 
 
+def make_move(state: GameState, coordinate: Coord, player: str, cat=False) -> None:
+  boop(state.board, coordinate)
+  state.board[coordinate] = player[0] if cat else player[0].lower()
+  if cat:
+    state.cats[player] -= 1
+  check_triple_kitty(state, player)
+
+
 def main(argv: Sequence[str]) -> None:
-  board = init_gameboard()
+  state = init_gamestate()
   players = ["Orange", "Brown"]
   turn_counter  = 0
   while True:
-    print_gameboard(board)
+    print_gameboard(state.board)
     turn = players[turn_counter%2]
     coord = input(f"Enter move for {turn} cat: ")
+    cat = False
+    if coord[-1] in ["C", "c"]:
+      cat = True
+      coord = coord[:-1]
+
     k = coord_to_key(coord)
     if not k:
       print(f"{coord} is not a valid move. Please try again: ")
       continue
-    boop(board, k)
-    board[k] = turn[0]
+    make_move(state, k, turn, cat)
     turn_counter += 1
-    winner = check_winner(board)
+    winner = check_winner(state.board)
     if winner:
-      print_gameboard(board)
+      print_gameboard(state.board)
       print(f"{turn} has won!")
-      exit()
+      break
 
 
 if __name__ == "__main__":
