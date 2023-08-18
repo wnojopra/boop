@@ -1,7 +1,7 @@
 from absl import app
 from typing import Sequence
-from boop_util import WIDTH, HEIGHT, VALID_KITTENS, VALID_CATS, Coord, Board, GameState
-
+from boop_util import (WIDTH, HEIGHT, VALID_KITTENS, VALID_CATS, 
+  Coord, Board, GameState, Piece, Color, Age)
 
 def init_gameboard() -> Board:
   board = {}
@@ -12,7 +12,9 @@ def init_gameboard() -> Board:
 
 
 def init_gamestate() -> GameState:
-  return GameState(init_gameboard())
+  orange_pieces = [Piece(Color.ORANGE, Age.KITTEN) for i in range(8)]
+  brown_pieces = [Piece(Color.BROWN, Age.KITTEN) for i in range(8)]
+  return GameState(init_gameboard(), orange_pieces, brown_pieces)
 
 
 def print_gameboard(board: Board) -> None:
@@ -110,7 +112,7 @@ def check_triple_kitty(state: GameState, player: str) -> None:
         state.cats[player] += 3
 
 
-def boop(board: Board, coordinate: Coord) -> None:
+def boop(board: Board, coordinate: Coord, cat: bool) -> None:
   x, y = coordinate
   for dx in [-1, 0, 1]:
     for dy in [-1, 0, 1]:
@@ -118,10 +120,10 @@ def boop(board: Board, coordinate: Coord) -> None:
         continue
       nx = x + dx
       ny = y + dy
-      if board[(x, y)] in VALID_KITTENS and board[(nx, ny)] in VALID_CATS:
-        # Cats can't be booped by kitties
-        continue
       if 0 <= nx < WIDTH and 0 <= ny < HEIGHT:
+        if not cat and board[(nx, ny)] in VALID_CATS:
+          # Cats can't be booped by kitties
+          continue
         # Check behind the neighbor
         bx = nx + dx
         by = ny + dy
@@ -138,7 +140,7 @@ def boop(board: Board, coordinate: Coord) -> None:
 
 
 def make_move(state: GameState, coordinate: Coord, player: str, cat=False) -> None:
-  boop(state.board, coordinate)
+  boop(state.board, coordinate, cat)
   state.board[coordinate] = player[0] if cat else player[0].lower()
   if cat:
     state.cats[player] -= 1
