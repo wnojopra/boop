@@ -1,8 +1,17 @@
-from absl import app
+from absl import app, flags
+from ai import AIType, get_move
+from boop_util import(
+  Age, Board, Color, Coord, GameState, Move, Piece,
+  HEIGHT, VALID_CATS, VALID_KITTENS, WIDTH
+)
 from typing import Sequence
-from boop_util import (WIDTH, HEIGHT, VALID_KITTENS, VALID_CATS, 
-  Coord, Board, GameState, Piece, Color, Age, Move)
 from time import sleep
+
+
+FLAGS = flags.FLAGS
+flags.DEFINE_boolean('demo', False, 'Enable to slow down displaying of board and user input.')
+flags.DEFINE_string('ai', None, 'Play against an AI. Choices are random or minimax.')
+
 
 def init_gameboard() -> Board:
   board = {}
@@ -51,11 +60,23 @@ def coordstr_to_coord(coord: str) -> Coord:
     "E1", "E2", "E3", "E4", "E5", "E6",
     "F1", "F2", "F3", "F4", "F5", "F6",
   ]
-  if coord not in valid_coords:
-    return None
-  y = ord(coord[0]) - ord("A")  # So A is col0, B is col1, etc
+  y = ord(coord[0].upper()) - ord("A")  # So A is col0, B is col1, etc
   x = HEIGHT - int(coord[1])
   return (x, y)
+
+
+def coord_to_coordstr(coord: Coord) -> str:
+  x, y = coord
+  rank = chr(y + ord("A"))
+  file = HEIGHT - x
+  return f"{rank}{file}"
+
+
+def age_to_agestr(age: Age) -> str:
+  return {
+    Age.CAT: "C",
+    Age.KITTEN: "K",
+  }[age]
 
 
 def check_winner(board: Board) -> str:
@@ -163,13 +184,14 @@ def input_correctly_formatted(uinput: str) -> bool:
   return len(uinput) == 3 and uinput[0] in valid_cols and uinput[1] in valid_rows and uinput[2] in valid_ages
 
 
-def get_and_check_move(state: GameState) -> Move:
+def get_and_check_player_move(state: GameState) -> Move:
   # 1) Get user input, check that it is formatted correctly
   # 2) Check that the square is empty
   # 3) Check that the piece is in the player's pool
   while True:
     uinput = input(f"Turn {state.turn_counter}: Enter move for {state.get_current_player()} cat: ")
-    sleep(1)
+    if(FLAGS.demo):
+      sleep(1)
     if not input_correctly_formatted(uinput):
       print("Move should be a coordinate followed by a K (for kitten) or C (for cat)")
       print("Example: \"D4K\" places a kitten at D4")
@@ -181,7 +203,6 @@ def get_and_check_move(state: GameState) -> Move:
       continue
     age = Age.KITTEN if uinput[2] in ["k", "K"] else Age.CAT
     if not state.player_has_enough_pieces(age):
-      print(age)
       print(f"Not enough {age} pieces")
       continue
     print(uinput)
@@ -189,12 +210,25 @@ def get_and_check_move(state: GameState) -> Move:
     return Move(coord, piece)
 
 
+def get_ai_move(state: GameState) -> Move:
+  if FLAGS.ai == "random":
+    move = get_move(state, AIType.RANDOM)
+  elif FLAGS.ai == "minimax":
+    move = get_move(state, AIType.MINIMAX)
+  else:
+    raise Exception(f"{FLAGS.ai} is an invalid AI option")
+  print(f"Turn {state.turn_counter}: AI played {coord_to_coordstr(move.coord)}{age_to_agestr(move.piece.age)}")
+  return move
+
 
 def main(argv: Sequence[str]) -> None:
   state = init_gamestate()
   while True:
     print_gameboard(state.board)
-    move = get_and_check_move(state)
+    if FLAGS.ai and state.current_turn == Color.BROWN:
+      move = get_ai_move(state)
+    else:
+      move = get_and_check_player_move(state)
     make_move(state, move)
     state.turn_counter += 1
     winner = check_winner(state.board)
