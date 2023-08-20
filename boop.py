@@ -2,6 +2,7 @@ from absl import app
 from typing import Sequence
 from boop_util import (WIDTH, HEIGHT, VALID_KITTENS, VALID_CATS, 
   Coord, Board, GameState, Piece, Color, Age, Move)
+from time import sleep
 
 def init_gameboard() -> Board:
   board = {}
@@ -167,7 +168,8 @@ def get_and_check_move(state: GameState) -> Move:
   # 2) Check that the square is empty
   # 3) Check that the piece is in the player's pool
   while True:
-    uinput = input(f"Enter move for {state.get_current_player()} cat: ")
+    uinput = input(f"Turn {state.turn_counter}: Enter move for {state.get_current_player()} cat: ")
+    sleep(1)
     if not input_correctly_formatted(uinput):
       print("Move should be a coordinate followed by a K (for kitten) or C (for cat)")
       print("Example: \"D4K\" places a kitten at D4")
@@ -182,6 +184,7 @@ def get_and_check_move(state: GameState) -> Move:
       print(age)
       print(f"Not enough {age} pieces")
       continue
+    print(uinput)
     piece = Piece(state.current_turn, age)
     return Move(coord, piece)
 
@@ -189,12 +192,11 @@ def get_and_check_move(state: GameState) -> Move:
 
 def main(argv: Sequence[str]) -> None:
   state = init_gamestate()
-  turn_counter  = 0
   while True:
     print_gameboard(state.board)
     move = get_and_check_move(state)
     make_move(state, move)
-    turn_counter += 1
+    state.turn_counter += 1
     winner = check_winner(state.board)
     if winner:
       print_gameboard(state.board)

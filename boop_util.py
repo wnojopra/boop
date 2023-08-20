@@ -39,6 +39,7 @@ class GameState:
     (Color.ORANGE, Age.CAT): 0,
     (Color.BROWN, Age.CAT): 0,
   }))
+  turn_counter: int = 1
 
   def get_current_player(self) -> str:
     return {
