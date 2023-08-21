@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import GamePiece from './GamePiece';
+import brownkitten from "./assets/brownkitten.png";
+import orangekitten from "./assets/orangekitten.png";
 
 const GameBoard: React.FC = () => {
   const [pieces, setPieces] = useState([
-    { id: 1, left: 0, top: 0, pieceType: 'orangekitten' },
-    { id: 2, left: 80, top: 80, pieceType: 'orangekitten' },
-    { id: 3, left: 160, top: 160, pieceType: 'brownkitten' },
-    { id: 4, left: 240, top: 240, pieceType: 'brownkitten' },
+    { id: 1, left: 160, top: 160, pieceType: orangekitten },
+    { id: 2, left: 160, top: 240, pieceType: orangekitten },
+    { id: 3, left: 240, top: 160, pieceType: brownkitten },
+    { id: 4, left: 240, top: 240, pieceType: brownkitten },
     // Add other pieces here...
   ]);
 

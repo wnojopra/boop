@@ -1,5 +1,6 @@
 import React from 'react';
 
+
 interface GamePieceProps {
   id: number;
   left: number;
@@ -20,7 +21,7 @@ const GamePiece: React.FC<GamePieceProps> = ({ id, left, top, pieceType, handleD
 
   return (
     <img
-      src={`assets/${pieceType}.png`}
+      src={pieceType}
       alt={pieceType}
       className="game-piece"
       style={pieceStyle}
