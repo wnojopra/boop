@@ -1,32 +1,26 @@
-import React, { useState } from 'react';
+import React, { MouseEvent, useState } from 'react';
 import GamePiece from './GamePiece';
 import brownkitten from "./assets/brownkitten.png";
 import orangekitten from "./assets/orangekitten.png";
 
-const GameBoard: React.FC = () => {
-  const [pieces, setPieces] = useState([
-    { id: 1, left: 160, top: 160, pieceType: orangekitten },
-    { id: 2, left: 160, top: 240, pieceType: orangekitten },
-    { id: 3, left: 240, top: 160, pieceType: brownkitten },
-    { id: 4, left: 240, top: 240, pieceType: brownkitten },
+interface GameBoardProps {
+  onChange: (coord: [number, number]) => void;
+};
+
+const GameBoard: React.FC<GameBoardProps> = ({ onChange }) => {
+  const [pieces] = useState([
+    { id: 1, left: 2, top: 2, pieceType: orangekitten },
+    { id: 2, left: 2, top: 3, pieceType: orangekitten },
+    { id: 3, left: 3, top: 2, pieceType: brownkitten },
+    { id: 4, left: 3, top: 3, pieceType: brownkitten },
     // Add other pieces here...
   ]);
+  const [selectedSquare, setSelectedSquare] = useState<number | null>(null);
 
-  const handleDragStart = (e: React.DragEvent, pieceId: number) => {
-    e.dataTransfer.setData('text/plain', pieceId.toString());
-  };
-
-  const handleDrop = (e: React.DragEvent, row: number, col: number) => {
+  const handleClick = (e: MouseEvent, row: number, col: number): void => {
     e.preventDefault();
-    const pieceId = e.dataTransfer.getData('text/plain');
-    const updatedPieces = pieces.map((piece) =>
-      piece.id.toString() === pieceId ? { ...piece, left: col * 80, top: row * 80 } : piece
-    );
-    setPieces(updatedPieces);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
+    onChange([row, col]);
+    setSelectedSquare(row * 6 + col);
   };
 
   return (
@@ -36,19 +30,17 @@ const GameBoard: React.FC = () => {
           {Array.from({ length: 6 }).map((_, col) => (
             <div
               key={col}
-              className="square"
-              onDrop={(e) => handleDrop(e, row, col)}
-              onDragOver={handleDragOver}
+              className={`square ${selectedSquare === row * 6 + col ? 'selected' : ''}`}
+              onClick={(e) => handleClick(e, row, col)}
             >
               {pieces.map((piece) =>
-                piece.left === col * 80 && piece.top === row * 80 ? (
+                piece.left === col && piece.top === row ? (
                   <GamePiece
                     key={piece.id}
                     id={piece.id}
                     left={piece.left}
                     top={piece.top}
                     pieceType={piece.pieceType}
-                    handleDragStart={handleDragStart}
                   />
                 ) : null
               )}
