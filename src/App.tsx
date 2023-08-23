@@ -76,6 +76,7 @@ const App: React.FC = () => {
       <Button 
         variant="contained"
         onClick={handleButtonClick}
+        disabled={coord && board[coord[0]][coord[1]] !== null}
       >
         Submit move
       </Button>
