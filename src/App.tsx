@@ -37,7 +37,7 @@ const App: React.FC = () => {
   };
 
   const handleAgeSwitchChange = () => {
-    setAgeSwitch(ageSwitch == Age.KITTEN ? Age.CAT : Age.KITTEN);
+    setAgeSwitch(ageSwitch === Age.KITTEN ? Age.CAT : Age.KITTEN);
   };
 
   const handleButtonClick = () => {
