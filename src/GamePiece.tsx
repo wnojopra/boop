@@ -1,25 +1,24 @@
 import React from 'react';
-
+import { Age, Color, Piece } from './BoopTypes';
+import brownkitten from "./assets/brownkitten.png";
+import browncat from "./assets/browncat.png";
+import orangekitten from "./assets/orangekitten.png";
+import orangecat from "./assets/orangecat.png";
 
 interface GamePieceProps {
-  id: number;
-  left: number;
-  top: number;
-  pieceType: string;
+  piece: Piece;
 }
 
-const GamePiece: React.FC<GamePieceProps> = ({ id, left, top, pieceType }) => {
-  const pieceStyle: React.CSSProperties = {
-    position: 'absolute',
-    cursor: 'pointer',
-  };
+const GamePiece: React.FC<GamePieceProps> = ({ piece }) => {
 
   return (
     <img
-      src={pieceType}
-      alt={pieceType}
+      src={piece.color === Color.BROWN ? 
+           ( piece.age === Age.KITTEN ? brownkitten : browncat ) : 
+           ( piece.age === Age.KITTEN ? orangekitten : orangecat )
+          }
+      alt=""
       className="game-piece"
-      style={pieceStyle}
     />
   );
 };

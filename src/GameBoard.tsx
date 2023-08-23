@@ -1,20 +1,14 @@
 import React, { MouseEvent, useState } from 'react';
 import GamePiece from './GamePiece';
-import brownkitten from "./assets/brownkitten.png";
-import orangekitten from "./assets/orangekitten.png";
+import { Board } from './BoopTypes';
+
 
 interface GameBoardProps {
   onChange: (coord: [number, number]) => void;
+  board: Board
 };
 
-const GameBoard: React.FC<GameBoardProps> = ({ onChange }) => {
-  const [pieces] = useState([
-    { id: 1, left: 2, top: 2, pieceType: orangekitten },
-    { id: 2, left: 2, top: 3, pieceType: orangekitten },
-    { id: 3, left: 3, top: 2, pieceType: brownkitten },
-    { id: 4, left: 3, top: 3, pieceType: brownkitten },
-    // Add other pieces here...
-  ]);
+const GameBoard: React.FC<GameBoardProps> = ({ onChange, board }) => {
   const [selectedSquare, setSelectedSquare] = useState<number | null>(null);
 
   const handleClick = (e: MouseEvent, row: number, col: number): void => {
@@ -25,25 +19,20 @@ const GameBoard: React.FC<GameBoardProps> = ({ onChange }) => {
 
   return (
     <div className="game-board">
-      {Array.from({ length: 6 }).map((_, row) => (
-        <div key={row} className="row">
-          {Array.from({ length: 6 }).map((_, col) => (
+      {board.map((row, rowIndex) => (
+        <div key={rowIndex} className="row">
+          {row.map((piece, columnIndex) => (
             <div
-              key={col}
-              className={`square ${selectedSquare === row * 6 + col ? 'selected' : ''}`}
-              onClick={(e) => handleClick(e, row, col)}
+              key={columnIndex}
+              className={`square ${selectedSquare === rowIndex * 6 + columnIndex ? 'selected' : ''}`}
+              onClick={(e) => handleClick(e, rowIndex, columnIndex)}
             >
-              {pieces.map((piece) =>
-                piece.left === col && piece.top === row ? (
+              {piece ? (
                   <GamePiece
-                    key={piece.id}
-                    id={piece.id}
-                    left={piece.left}
-                    top={piece.top}
-                    pieceType={piece.pieceType}
+                    piece={piece}
                   />
                 ) : null
-              )}
+              }
             </div>
           ))}
         </div>
