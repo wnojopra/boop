@@ -34,3 +34,42 @@
   width: 3rem;
   height: 3rem;
 }
+
+.boop-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 1em;
+}
+
+.boop-gamename {
+  font-size: 2.5em;
+  font-weight: 800;
+  color: #222;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-top: 0.1em;
+}
+
+.bottom-part {
+  margin-top: 5em;
+}
+
+.blink-bg{
+  text-align: center;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: #fff;
+  border-radius: 5px;
+  animation: blinkingBackground 2s infinite;
+}
+@keyframes blinkingBackground{
+  0%    { background-color: #10c018;}
+  25%   { background-color: #1056c0;}
+  50%   { background-color: #ef0a1a;}
+  75%   { background-color: #254878;}
+  100%  { background-color: #04a1d5;}
+}

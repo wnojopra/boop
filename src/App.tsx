@@ -5,7 +5,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
-import { Age, Board, Coord, Color, Piece } from './BoopTypes';
+import { arePiecesEqual, Age, Board, Coord, Color, Piece, HEIGHT, WIDTH } from './BoopTypes';
 
 
 const initBoardState = (): Board => {
@@ -21,6 +21,10 @@ const initBoardState = (): Board => {
   return initialBoard;
 };
 
+const colorEnumToStr = (color: Color): string => {
+  return color === Color.ORANGE ? "Orange" : "Brown"
+}
+
 const App: React.FC = () => {
   const [board, setBoard] = useState<Board>(initBoardState);
   const [coord, setCoord] = useState<Coord>([0, 0]);
@@ -31,6 +35,7 @@ const App: React.FC = () => {
   // const [numOrangeCats, setNumOrangeCats] = useState<number>(0)
   // const [numBrownCats, setNumBrownCats] = useState<number>(0)
   const [turnCounter, setTurnCounter] = useState<number>(1);
+  const [winner, setWinner] = useState<Color|null>(null)
   
   const handleSquareClick = (coord: [number, number]) => {
     setCoord(coord);
@@ -40,23 +45,169 @@ const App: React.FC = () => {
     setAgeSwitch(ageSwitch === Age.KITTEN ? Age.CAT : Age.KITTEN);
   };
 
+  const check_winner = (updatedBoard: Board): Color|null => {
+    // Check rows
+    for (let x = 0; x < WIDTH; x++) {
+      for (let y = 0; y < HEIGHT - 2; y++) {
+        const p1 = updatedBoard[x][y];
+        const p2 = updatedBoard[x][y + 1];
+        const p3 = updatedBoard[x][y + 2];
+        if (arePiecesEqual(p1, p2) && arePiecesEqual(p2, p3) && p1?.age === Age.CAT) {
+          return p1.color;
+        }
+      }
+    }
+
+    // Check columns
+    for (let y = 0; y < HEIGHT; y++) {
+      for (let x = 0; x < WIDTH - 2; x++) {
+        const p1 = updatedBoard[x][y];
+        const p2 = updatedBoard[x + 1][y];
+        const p3 = updatedBoard[x + 2][y];
+        if (arePiecesEqual(p1, p2) && arePiecesEqual(p2, p3) && p1?.age === Age.CAT) {
+          return p1.color;
+        }
+      }
+    }
+
+    // Check diagonals
+    for (let y = 0; y < HEIGHT - 2; y++) {
+      for (let x = 0; x < WIDTH - 2; x++) {
+        const p1 = updatedBoard[x][y];
+        const p2 = updatedBoard[x + 1][y + 1];
+        const p3 = updatedBoard[x + 2][y + 2];
+        if (arePiecesEqual(p1, p2) && arePiecesEqual(p2, p3) && p1?.age === Age.CAT) {
+          return p1.color;
+        }
+
+        const p4 = updatedBoard[x + 2][y]
+        const p5 = updatedBoard[x + 1][y + 1]
+        const p6 = updatedBoard[x][y + 2]
+        if (arePiecesEqual(p4, p5) && arePiecesEqual(p5, p6) && p4?.age === Age.CAT) {
+          return p4.color;
+        }
+      }
+    }
+    return null;
+  }
+
+  const check_triple_kitty = (updatedBoard: Board): void => {
+    // Check rows
+    for (let x = 0; x < WIDTH; x++) {
+      for (let y = 0; y < HEIGHT - 2; y++) {
+        const p1 = updatedBoard[x][y];
+        const p2 = updatedBoard[x][y + 1];
+        const p3 = updatedBoard[x][y + 2];
+        if (arePiecesEqual(p1, p2) && arePiecesEqual(p2, p3) && p1?.age === Age.KITTEN) {
+          // TODO: piece math
+          updatedBoard[x][y] = updatedBoard[x][y + 1] = updatedBoard[x][y + 2] = null;
+        }
+      }
+    }
+
+    // Check columns
+    for (let y = 0; y < HEIGHT; y++) {
+      for (let x = 0; x < WIDTH - 2; x++) {
+        const p1 = updatedBoard[x][y];
+        const p2 = updatedBoard[x + 1][y];
+        const p3 = updatedBoard[x + 2][y];
+        if (arePiecesEqual(p1, p2) && arePiecesEqual(p2, p3) && p1?.age === Age.KITTEN) {
+          // TODO: piece math
+          updatedBoard[x][y] = updatedBoard[x + 1][y] = updatedBoard[x + 2][y] = null;
+        }
+      }
+    }
+
+    // Check diagonals
+    for (let y = 0; y < HEIGHT - 2; y++) {
+      for (let x = 0; x < WIDTH - 2; x++) {
+        const p1 = updatedBoard[x][y];
+        const p2 = updatedBoard[x + 1][y + 1];
+        const p3 = updatedBoard[x + 2][y + 2];
+        if (arePiecesEqual(p1, p2) && arePiecesEqual(p2, p3) && p1?.age === Age.KITTEN) {
+          // TODO: piece math
+          updatedBoard[x][y] = updatedBoard[x + 1][y + 1] = updatedBoard[x + 2][y + 2] = null;
+        }
+
+        const p4 = updatedBoard[x + 2][y]
+        const p5 = updatedBoard[x + 1][y + 1]
+        const p6 = updatedBoard[x][y + 2]
+        if (arePiecesEqual(p4, p5) && arePiecesEqual(p5, p6) && p4?.age === Age.KITTEN) {
+          // TODO: piece math
+          updatedBoard[x + 2][y] = updatedBoard[x + 1][y + 1] = updatedBoard[x][y + 2] = null;
+        }
+      }
+    }
+    setBoard(updatedBoard);
+  }
+
+  const boop = (piece: Piece): Board => {
+    const [x, y] = coord;
+    let updatedBoard: Board = board.map(row => [...row]); // Create a copy of the board
+    for (const dx of [-1, 0, 1]) {
+      for (const dy of [-1, 0, 1]) {
+        if (dx === 0 && dy === 0) {
+          continue;
+        }
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT) {
+          if (
+            updatedBoard[nx][ny]?.age === Age.CAT &&
+            piece.age === Age.KITTEN
+          ) {
+            // Cats can't be booped by kitties
+            continue;
+          }
+          // Check behind the neighbor
+          const bx = nx + dx;
+          const by = ny + dy;
+          if (
+            bx < 0 ||
+            bx >= WIDTH ||
+            by < 0 ||
+            by >= HEIGHT
+          ) {
+            // Booped off
+            updatedBoard[nx][ny] = null;
+          } else if (updatedBoard[bx][by] === null) {
+            // Boop the cat backwards
+            updatedBoard[bx][by] = updatedBoard[nx][ny]
+            updatedBoard[nx][ny] = null
+          } else {
+            // There's a cat in the way. No booping.
+            ;
+          }
+        }
+      }
+    }
+    updatedBoard[x][y] = piece;
+    return updatedBoard;
+  };
+
   const handleButtonClick = () => {
     const piece = new Piece(currentTurn, ageSwitch);
-    const updatedBoard: Board = board.map(row => [...row]); // Create a copy of the board
-    const [x, y] = coord;
-    updatedBoard[x][y] = piece;
-    setBoard(updatedBoard);
-    setTurnCounter(turnCounter+1);
-    if (currentTurn === Color.ORANGE) {
-      setCurrentTurn(Color.BROWN)
+    let updatedBoard = boop(piece);
+    check_triple_kitty(updatedBoard);
+    const winning_color = check_winner(updatedBoard);
+    if (winning_color !== null) {
+      debugger;
+      setWinner(winning_color);
     } else {
-      setCurrentTurn(Color.ORANGE)
+      setTurnCounter(turnCounter+1);
+      if (currentTurn === Color.ORANGE) {
+        setCurrentTurn(Color.BROWN)
+      } else {
+        setCurrentTurn(Color.ORANGE)
+      }
     }
   };
 
   return (
-    <div className="App">
-      <h1>Boop</h1>
+    <div className={`${winner === null ? 'App' : 'blink-bg'}`}>
+      <div className="boop-header">
+        <div className="boop-gamename">Boop</div>
+      </div>
       <GameBoard 
         onChange={handleSquareClick}
         board={board}
@@ -71,15 +222,22 @@ const App: React.FC = () => {
         <Typography>Cat</Typography>
       </Stack>
       <Typography>
-        {`Turn number: ${turnCounter}. It is ${currentTurn === Color.ORANGE ? "Orange" : "Brown"} player's turn.`}
+        {`Turn number: ${turnCounter}. ${winner === null ? `It is ${colorEnumToStr(currentTurn)} player's turn.` : `${colorEnumToStr(winner)} player has won!`}`}
       </Typography>
       <Button 
         variant="contained"
         onClick={handleButtonClick}
-        disabled={coord && board[coord[0]][coord[1]] !== null}
+        disabled={coord && board[coord[0]][coord[1]] !== null && winner !== null}
       >
         Submit move
       </Button>
+
+      <div className="bottom-part">
+        <Typography>By Willy Nojopranoto</Typography>
+        <a href="https://github.com/wnojopra/boop">
+          <Button>View on Github</Button>
+        </a>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { MouseEvent, useState } from 'react';
 import GamePiece from './GamePiece';
-import { Board } from './BoopTypes';
+import { Board, HEIGHT } from './BoopTypes';
 
 
 interface GameBoardProps {
@@ -14,7 +14,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onChange, board }) => {
   const handleClick = (e: MouseEvent, row: number, col: number): void => {
     e.preventDefault();
     onChange([row, col]);
-    setSelectedSquare(row * 6 + col);
+    setSelectedSquare(row * HEIGHT + col);
   };
 
   return (
@@ -24,7 +24,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onChange, board }) => {
           {row.map((piece, columnIndex) => (
             <div
               key={columnIndex}
-              className={`square ${selectedSquare === rowIndex * 6 + columnIndex ? 'selected' : ''}`}
+              className={`square ${selectedSquare === rowIndex * HEIGHT + columnIndex ? 'selected' : ''}`}
               onClick={(e) => handleClick(e, rowIndex, columnIndex)}
             >
               {piece ? (
