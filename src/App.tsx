@@ -30,12 +30,12 @@ const App: React.FC = () => {
   const [coord, setCoord] = useState<Coord>([0, 0]);
   const [ageSwitch, setAgeSwitch] = useState<Age>(Age.KITTEN);
   const [currentTurn, setCurrentTurn] = useState<Color>(Color.ORANGE);
-  // const [numOrangeKittens, setNumOrangeKittens] = useState<number>(8)
-  // const [numBrownKittens, setNumBrownKittens] = useState<number>(8)
-  // const [numOrangeCats, setNumOrangeCats] = useState<number>(0)
-  // const [numBrownCats, setNumBrownCats] = useState<number>(0)
+  const [numOrangeKittens, setNumOrangeKittens] = useState<number>(8);
+  const [numBrownKittens, setNumBrownKittens] = useState<number>(8);
+  const [numOrangeCats, setNumOrangeCats] = useState<number>(0);
+  const [numBrownCats, setNumBrownCats] = useState<number>(0);
   const [turnCounter, setTurnCounter] = useState<number>(1);
-  const [winner, setWinner] = useState<Color|null>(null)
+  const [winner, setWinner] = useState<Color|null>(null);
   
   const handleSquareClick = (coord: [number, number]) => {
     setCoord(coord);
@@ -43,6 +43,20 @@ const App: React.FC = () => {
 
   const handleAgeSwitchChange = () => {
     setAgeSwitch(ageSwitch === Age.KITTEN ? Age.CAT : Age.KITTEN);
+  };
+
+  const updateCatCount = (age: Age | undefined, color: Color | undefined, delta: number) => {
+    if (age === Age.KITTEN && color === Color.ORANGE) {
+      setNumOrangeKittens(numOrangeKittens + delta);
+    } else if (age === Age.KITTEN && color === Color.BROWN) {
+      setNumBrownKittens(numBrownKittens + delta);
+    } else if (age === Age.CAT && color === Color.ORANGE) {
+      setNumOrangeCats(numOrangeCats + delta);
+    } else if (age === Age.CAT && color === Color.BROWN) {
+      setNumBrownCats(numBrownCats + delta);
+    } else {
+      window.alert(`Error: updating cat count with age ${age} and color ${color}`)
+    }
   };
 
   const check_winner = (updatedBoard: Board): Color|null => {
@@ -100,6 +114,7 @@ const App: React.FC = () => {
         const p3 = updatedBoard[x][y + 2];
         if (arePiecesEqual(p1, p2) && arePiecesEqual(p2, p3) && p1?.age === Age.KITTEN) {
           // TODO: piece math
+          updateCatCount(Age.CAT, p1?.color, 3);
           updatedBoard[x][y] = updatedBoard[x][y + 1] = updatedBoard[x][y + 2] = null;
         }
       }
@@ -112,7 +127,7 @@ const App: React.FC = () => {
         const p2 = updatedBoard[x + 1][y];
         const p3 = updatedBoard[x + 2][y];
         if (arePiecesEqual(p1, p2) && arePiecesEqual(p2, p3) && p1?.age === Age.KITTEN) {
-          // TODO: piece math
+          updateCatCount(Age.CAT, p1?.color, 3);
           updatedBoard[x][y] = updatedBoard[x + 1][y] = updatedBoard[x + 2][y] = null;
         }
       }
@@ -125,7 +140,7 @@ const App: React.FC = () => {
         const p2 = updatedBoard[x + 1][y + 1];
         const p3 = updatedBoard[x + 2][y + 2];
         if (arePiecesEqual(p1, p2) && arePiecesEqual(p2, p3) && p1?.age === Age.KITTEN) {
-          // TODO: piece math
+          updateCatCount(Age.CAT, p1?.color, 3);
           updatedBoard[x][y] = updatedBoard[x + 1][y + 1] = updatedBoard[x + 2][y + 2] = null;
         }
 
@@ -133,7 +148,7 @@ const App: React.FC = () => {
         const p5 = updatedBoard[x + 1][y + 1]
         const p6 = updatedBoard[x][y + 2]
         if (arePiecesEqual(p4, p5) && arePiecesEqual(p5, p6) && p4?.age === Age.KITTEN) {
-          // TODO: piece math
+          updateCatCount(Age.CAT, p4?.color, 3);
           updatedBoard[x + 2][y] = updatedBoard[x + 1][y + 1] = updatedBoard[x][y + 2] = null;
         }
       }
@@ -168,8 +183,11 @@ const App: React.FC = () => {
             by < 0 ||
             by >= HEIGHT
           ) {
-            // Booped off
-            updatedBoard[nx][ny] = null;
+            if (updatedBoard[nx][ny] !== null) {
+              // Booped off
+              updateCatCount(updatedBoard[nx][ny]?.age, updatedBoard[nx][ny]?.color, 1);
+              updatedBoard[nx][ny] = null;
+            }
           } else if (updatedBoard[bx][by] === null) {
             // Boop the cat backwards
             updatedBoard[bx][by] = updatedBoard[nx][ny]
@@ -181,6 +199,7 @@ const App: React.FC = () => {
         }
       }
     }
+    updateCatCount(piece.age, piece.color, -1);
     updatedBoard[x][y] = piece;
     return updatedBoard;
   };
@@ -220,6 +239,18 @@ const App: React.FC = () => {
           checked={ageSwitch === Age.CAT}
         />
         <Typography>Cat</Typography>
+      </Stack>
+      <Stack direction="row" spacing={5} alignItems="center">
+        <div className="cat-counters">
+          <div className="cat-counter-header">Orange</div>
+          <div>{`Number of Kittens: ${numOrangeKittens}`}</div>
+          <div>{`Number of Cats: ${numOrangeCats}`}</div>
+        </div>
+        <div className="cat-counters">
+          <div className="cat-counter-header">Brown</div>
+          <div>{`Number of Kittens: ${numBrownKittens}`}</div>
+          <div>{`Number of Cats: ${numBrownCats}`}</div>
+        </div>
       </Stack>
       <Typography>
         {`Turn number: ${turnCounter}. ${winner === null ? `It is ${colorEnumToStr(currentTurn)} player's turn.` : `${colorEnumToStr(winner)} player has won!`}`}

@@ -73,3 +73,12 @@
   75%   { background-color: #254878;}
   100%  { background-color: #04a1d5;}
 }
+
+.cat-counters {
+  text-align: left;
+  padding: 20px;
+}
+
+.cat-counter-header {
+  text-decoration: underline;
+}
