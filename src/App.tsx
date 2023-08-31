@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import GameBoard from './GameBoard';
 import './App.css';
-import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
-import Switch from '@mui/material/Switch';
-import Typography from '@mui/material/Typography';
+import { Button, Stack, Switch, Typography } from '@mui/material';
 import { arePiecesEqual, Age, Board, Coord, Color, Piece, HEIGHT, WIDTH } from './BoopTypes';
-
+import ResponsiveDialog from './Instructions';
 
 const initBoardState = (): Board => {
   const initialBoard: Board = [];
@@ -227,6 +224,7 @@ const App: React.FC = () => {
       <div className="boop-header">
         <div className="boop-gamename">Boop</div>
       </div>
+      <ResponsiveDialog />
       <GameBoard 
         onChange={handleSquareClick}
         board={board}
